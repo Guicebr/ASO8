@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
- 
+
+#define TWORD 50
+#define TAMVEC 10000
+#define TLIN 1000
+	 
 int main(int argc, char** argv){
 	/*
 	char arg1,arg2;
@@ -50,9 +54,8 @@ int main(int argc, char** argv){
 	FILE *fichero; // Puntero al fichero
  	//Se abre el fichero que se pasa como argumento
 	fichero = fopen(argv[1],"r");
- 	
-	funcionconsultas (300,fichero);
-	
+ 	//funcionconsultas (300,fichero);
+	funcionc_bytes(300,fichero);
 	/*
 	char* cadena;
 	char* cliente;
@@ -75,35 +78,32 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-int funcionconsultas ( int nlineas,FILE *fichero){
+int funcionconsultas ( int nlineas, FILE *fichero){
 	
 	char* cliente;
 	char* cadena;
 	char** clientes;
 	int* nconsultas;
-	int tam = 100000;
-	int lin = 1000;
-	int tword = 50;
 	int i;
+
+	cadena = (char*)malloc(TLIN*sizeof(char));
+	cliente = (char*)malloc(TWORD*sizeof(char));
+	clientes = (char**)malloc(TAMVEC*sizeof(char*));	
+	nconsultas = (int*)malloc(TAMVEC*sizeof(int));
 	
-	cliente = (char*)malloc(tword*sizeof(char));
-	clientes = (char**)malloc(tam*sizeof(char*));	
-	for (i=0; i<tam; i++) clientes[i] = (char*)malloc(tword*sizeof(char));
-	for (i=0; i<tam; i++) clientes[i] = (char*)NULL;
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)malloc(TWORD*sizeof(char));
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)NULL;
 	
-	nconsultas = (int*)malloc(tam*sizeof(int));
-	cadena = (char*)malloc(lin*sizeof(char));
 		
 	rewind(fichero);
 	while (!feof(fichero)){	
-		fgets(cadena,lin,fichero);
-		//printf("%s\n",cadena);	
-		//sscanf(cadena, "%s - - %*5s %*d %*d %*s %*s",cliente);
+		fgets(cadena,TLIN,fichero);
 		sscanf(cadena, "%s",cliente);
 		printf("Cliente %s\n",cliente);
-		procesaconsultas(clientes,tam,cliente,nconsultas);
+		procesaconsultas(clientes,cliente,nconsultas);
 	}
-
+	
+	// Imprime
 	printf("Cliente \t Consultas\n");
 	i=0;
 	while( clientes[i]!=NULL){
@@ -113,17 +113,14 @@ int funcionconsultas ( int nlineas,FILE *fichero){
 	return 0;
 }
 
-int procesaconsultas(char** clientes, int tam, char* cliente, int* nconsultas){
+int procesaconsultas(char** clientes, char* cliente, int* nconsultas){
+	
 	int i=0;
 	char* aux;
-	aux = (char*)malloc(300*sizeof(char));
-	//strcmp 0 si son iguales
+	aux = (char*)malloc(TWORD*sizeof(char));
 	//Si esta en el vector se suma uno
 	while(clientes[i]!=NULL){
-	//	printf("Despues Break Clientes[%d] %s/ cliente %s\n",i,clientes[i],cliente);	
-		//printf("Son iguales %d \n",strcmp(clientes[i],cliente));
 		if(strcmp(clientes[i],cliente)==0){
-		//	printf("Cliente %s \t ConsultasAntes  %d\n",clientes[i],nconsultas[i]);
 			nconsultas[i] += 1;
 			printf("Cliente %s \t ConsultasDespues  %d\n",clientes[i],nconsultas[i]);
 			return 0;
@@ -133,11 +130,69 @@ int procesaconsultas(char** clientes, int tam, char* cliente, int* nconsultas){
 	}
 	//Si no esta en el vector se mete en la primera posicion libre
 	strcpy(aux,cliente);
-	//printf("Cliente a meter %s en %d/ aux %s\n",cliente,i,aux);
 	clientes[i] = (char*) aux;
-	//clientes[j] = cliente;
 	nconsultas[i] = 1;
 	printf("Metido Cliente %s en la posicion %d Consultas  %d\n",clientes[i],i,nconsultas[i]);
+		
+	return 0;
+}
+
+int funcionc_bytes ( int nlineas, FILE *fichero){
+	
+	char* cliente;
+	int bytes;
+	char* cadena;
+	char** clientes;
+	int* nbytes;
+	int i;
+
+	cadena = (char*)malloc(TLIN*sizeof(char));
+	cliente = (char*)malloc(TWORD*sizeof(char));
+	clientes = (char**)malloc(TAMVEC*sizeof(char*));	
+	nbytes = (int*)malloc(TAMVEC*sizeof(int));
+	
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)malloc(TWORD*sizeof(char));
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)NULL;
+	
+		
+	rewind(fichero);
+	while (!feof(fichero)){	
+		fgets(cadena,TLIN,fichero);
+		sscanf(cadena, "%s - %*s %*s %*s %*s %*s %*s %*d %d",cliente,&bytes);
+		printf("Cliente %s Bytes %d\n",cliente,bytes);
+		procesac_bytes(clientes,cliente,nbytes,bytes);
+	}
+	
+	printf("Cliente \t Bytes\n");
+	i=0;
+	while( clientes[i]!=NULL){
+		printf("%s \t %d\n",clientes[i],nbytes[i]);
+		i++;
+	}
+	return 0;
+}
+
+int procesac_bytes(char** clientes, char* cliente, int* nbytes, int bytes){
+
+	int i=0;
+	char* aux;
+	aux = (char*)malloc(TWORD*sizeof(char));
+	
+	//
+	while(clientes[i]!=NULL){
+		if(strcmp(clientes[i],cliente)==0){
+			nbytes[i] += bytes;
+			printf("Cliente %s \t Bytes  %d\n",clientes[i],nbytes[i]);
+			return 0;
+		}
+
+		i ++;
+	}
+	//Si no esta en el vector se mete en la primera posicion libre
+	strcpy(aux,cliente);
+	clientes[i] = (char*) aux;
+	nbytes[i] = bytes;
+	printf("Metido Cliente %s en la posicion %d Bytes  %d\n",clientes[i],i,nbytes[i]);
 		
 	return 0;
 }
