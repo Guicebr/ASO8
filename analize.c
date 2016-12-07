@@ -57,7 +57,8 @@ int main(int argc, char** argv){
 	fichero = fopen(argv[1],"r");
  	//funcionconsultas (300,fichero);
 	//funcionc_bytes(300,fichero);
-	funcionh_bytes(300,fichero);
+	//funcionh_bytes(300,fichero);
+	funcionch_bytes(300,fichero);
 	/*
 	char* cadena;
 	char* cliente;
@@ -225,27 +226,44 @@ int funcionh_bytes ( int nlineas, FILE *fichero){
 
 	return 0;	
 }
-/*
-int procesah_bytes(char** clientes, char* cliente, int* nconsultas){
-	
-	int i=0;
-	char* aux;
-	aux = (char*)malloc(TWORD*sizeof(char));
-	//Si esta en el vector se suma uno
-	while(clientes[i]!=NULL){
-		if(strcmp(clientes[i],cliente)==0){
-			nconsultas[i] += 1;
-			printf("Cliente %s \t ConsultasDespues  %d\n",clientes[i],nconsultas[i]);
-			return 0;
-		}
 
-		i ++;
-	}
-	//Si no esta en el vector se mete en la primera posicion libre
-	strcpy(aux,cliente);
-	clientes[i] = (char*) aux;
-	nconsultas[i] = 1;
-	printf("Metido Cliente %s en la posicion %d Consultas  %d\n",clientes[i],i,nconsultas[i]);
+int funcionch_bytes ( int nlineas, FILE *fichero){
+	
+	char* cliente;
+	int bytes;
+	int hora;
+	char* auxhora;
+	char* cadena;
+	char** clientes;
+	int* nbytes;
+	int i;
+
+	cadena = (char*)malloc(TLIN*sizeof(char));
+	cliente = (char*)malloc(TWORD*sizeof(char));
+	clientes = (char**)malloc(TAMVEC*sizeof(char*));	
+	nbytes = (int*)malloc(TAMVEC*sizeof(int));
+	auxhora = (char*)malloc(3*sizeof(char));	
+
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)malloc(TWORD*sizeof(char));
+	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)NULL;
+	
 		
+	rewind(fichero);
+	while (!feof(fichero)){	
+		fgets(cadena,TLIN,fichero);
+		sscanf(cadena, "%s - %*s %*12c:%2d:%*d:%*d  %*s %*s %*s %*s %*d %d",cliente,&hora,&bytes);
+		sprintf(auxhora," %02d",hora);
+		strcat(cliente,auxhora);
+		printf("Cliente %s Bytes %d\n",cliente,bytes);
+		procesac_bytes(clientes,cliente,nbytes,bytes);
+	}
+	
+	printf("Cliente \t Bytes\n");
+	i=0;
+	while( clientes[i]!=NULL){
+		printf("%s \t %d\n",clientes[i],nbytes[i]);
+		i++;
+	}
 	return 0;
-}*/
+}
+
