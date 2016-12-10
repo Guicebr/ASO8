@@ -9,52 +9,57 @@
 #define RLIN 10
 
 
-int funcion (char arg1, int arg2i, FILE *fichero);
+int funcion (char arg1, char arg2, FILE *fichero);
 
 int main( int argc, char** argv){
-	/*
+
 	char arg1,arg2;
  	int arg2i;
-
-	if(argc!=2 | !argv[1][2]){
-		printf("USO analize -a1\n");
+	FILE *fichero;
+	
+	// Se comprueba el numero de argumentos
+	if(argc!=3){
+		printf("USO analize -a1 nomfich\n");
 		exit(0);	
 	}
 	
-	
 	arg1 = argv[1][1];
 	arg2 = argv[1][2];
-	arg2i = atoi(arg2);
-
-	if(arg1!='a' | arg1!='b' | argv1!='c'){
+	//printf("arg1 %c/ arg2 %c/ fichero %s\n",arg1,arg2,argv[2]);
+	// Se comprueba que los argumento son adecuados
+	if(arg1!='a' && arg1!='b' && arg1!='c'){
 		printf("El primer argumento tiene que ser a,b,c\n");
 		exit(0);
 	}
 	
-	if(arg2i!=1 | arg2i!=2 | arg2i!=3){
+	if(arg2!='1' && arg2!='2' && arg2!='3'){
 		printf("El segundo argumento puede ser 1,2,3\n");
 		exit(0);
 	}
 	
 	
 	
-	*/
 
-	FILE *fichero; // Puntero al fichero
- 	//Se abre el fichero que se pasa como argumento
-	fichero = fopen( argv[1], "r");
+	
 
- 	//funcion ( arg1, arg2i, fichero);
-	funcion ('a', 3, fichero);
+ 	// Se abre el fichero que se pasa como argumento con las opciones dadas
+	fichero = fopen( argv[2], "r");
+	if(!fichero){
+		printf("NO se puede abrir el fichero\n");
+		exit(0);	
+	}
+	
+	// Se llama a la funcion principal con las opciones dadas
+ 	funcion ( arg1, arg2, fichero);
 	return 0;
 }
 
-int funcion (char arg1, int arg2i, FILE *fichero){
+int funcion (char arg1, char arg2, FILE *fichero){
 	
 	int i;
-	char* cadena;
+	char* cadena; // Cadena que contiene una linea del fichero
 
-	char** clientes;
+	char** clientes; // Array donde se guardan todos los clientes
 	char* cliente;
 
 	
@@ -62,8 +67,10 @@ int funcion (char arg1, int arg2i, FILE *fichero){
 	long* array; // Amacena numero de bytes o numero de consultas	
 
 	int hora;
-	char* auxhora;
+	char* auxhora; 
+
 	
+	// Reservamos espacio en memoria 	
 	cadena = (char*)malloc(TLIN*sizeof(char));
 	cliente = (char*)malloc(TWORD*sizeof(char));
 	clientes = (char**)malloc(TAMVEC*sizeof(char*));
@@ -74,8 +81,11 @@ int funcion (char arg1, int arg2i, FILE *fichero){
 	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)malloc(TWORD*sizeof(char));
 	for (i=0; i<TAMVEC; i++) clientes[i] = (char*)NULL;
 	
-	if(arg2i==3) arg1= 'd';
+	// Si la opcion es 3 usamos el case d
+	if(arg2=='3') arg1= 'd';
 	
+	
+	// Leemos cada linea del fichero y obtenemos los datos que necesitamos para cada caso
 	rewind(fichero);
 	while (!feof(fichero)){	
 		fgets(cadena,TLIN,fichero);
@@ -117,31 +127,31 @@ int funcion (char arg1, int arg2i, FILE *fichero){
 		}
 	
 	}
+	
+	// Si es el caso de las horas se va a un caso propio
+	if(arg1=='c' && (arg2=='1' ||arg2=='2')) arg2='4'; 
 
-	if(arg1=='c' && (arg2i==1 ||arg2i==2)) arg2i=4; 
-
-	switch(arg2i){
+	switch(arg2){
 		
 		//Lista completa
-		case 1:	
-			imprimetam(clientes,array,TAMVEC);
+		case '1':	
 			ordenaarrays(clientes, array);
 			imprimetam(clientes,array,TAMVEC);
 			break;
 		
 		//Los 10 primeros
-		case 2:
+		case '2':
 			ordenaarrays(clientes, array);
 			imprimetam(clientes,array,RLIN);
 			break;
 
 		// Histograma
-		case 3:
+		case '3':
 			imprimehistograma(clientes,array);
 			break;
 		
 		// Horas y Bytes
-		case 4:
+		case '4':
 			imprimehora(array);
 			break;
 
@@ -152,13 +162,14 @@ int funcion (char arg1, int arg2i, FILE *fichero){
 	return 0;
 }
 
+// Llena el array de clientes y el array con los bytes o consultas de cada cliente
 int procesa (char** clientes, char* cliente, long* array, int num){
 
 	int i=0;
 	char* aux;
 	aux = (char*)malloc(TWORD*sizeof(char));
 	
-	
+	// Comprobamos si el cliente esta en el array de clientes
 	while(clientes[i]!=NULL){
 		if(strcmp(clientes[i],cliente)==0){
 			array[i] += (long)num;
@@ -168,14 +179,14 @@ int procesa (char** clientes, char* cliente, long* array, int num){
 		i ++;
 	}
 	
-	//Si no esta en el vector se mete en la primera posicion libre
+	//Si no esta en el vector se mete en la primera posicion libre i
 	strcpy(aux,cliente);
 	clientes[i] = (char*) aux;
 	array[i] = (long)num;
 	return 0;
 }
 
-
+// Imprime un rango de hora junto con el array pasado
 int imprimehora(long* array){
 
 	int i;
@@ -187,6 +198,7 @@ int imprimehora(long* array){
 	return 0;
 }
 
+// Intercambiamos un cliente de posicion con otro y sus respectivos bytes o consultas
 void intercambiar (char** arrayc, long* arrayi,int i, int j){
 	long tmpi;
 	char* tmpc = (char*)malloc(TWORD*sizeof(char));
@@ -201,10 +213,12 @@ void intercambiar (char** arrayc, long* arrayi,int i, int j){
 	arrayc[j] = tmpc;
 }
 
+// Ordenamos un array de mayor a menor ordenando tambien los clientes
 int ordenaarrays(char** arrayc, long* arrayi){
 
 	int i, j, k, N=0;
 	
+	// Calculamos el tamaño valido del array
 	while(arrayc[N]!=NULL){N++;}
 
 	for (i = 0; i < N - 1; i++){
@@ -217,7 +231,7 @@ int ordenaarrays(char** arrayc, long* arrayi){
 }
 
 
-
+// Imprime las ntam posiciones del array de clientes y de bytes o consultas
 int imprimetam(char** clientes,long* array,int tam){
 
 	int i=0;
@@ -230,22 +244,28 @@ int imprimetam(char** clientes,long* array,int tam){
 	return 0;
 }
 
+// Imprime los datos pasados en forma de Histograma
+// Rango-Hora /Cliente con mas bytes en esa hora /Bytes del cliente
 int imprimehistograma(char** clientes,long* array){
 	int i,max;
 	char** clientes24;
 	long* array24;
 	
+	// Reservamos espacio en memoria
 	array24 = (long*)malloc(HORAS*sizeof(long));
 	clientes24 = (char**)malloc(HORAS*sizeof(char*));
 	
 	for (i=0; i<HORAS; i++) clientes24[i] = (char*)malloc(TWORD*sizeof(char));
 	
+	// Calculamos el cliente con el mayor nbytes para cada hora
+	// Y guardamos sus bytes y su nombre en los arrays auxiliares
 	for(i=0; i<HORAS; i++){
 		max = maximohora(clientes,array,i);
 		sscanf(clientes[max],"%s",clientes24[i]);
 		array24[i] = array[max];
 	}
 	
+	// Imprimimos el Histograma
 	printf("Rango hora \t Cliente \t Tam en Bytes\n");
 
 	for(i=0; i<HORAS; i++){
@@ -255,20 +275,19 @@ int imprimehistograma(char** clientes,long* array){
 	return 0;
 }
 
+// Calculamos el cliente con el mayor nbytes para cada hora y devolvemos la posicion del maximo
 int maximohora (char** clientes, long* array, int hora){
 	// Devuelve la posicion del cliente con mas bytes en la hora dada
 	int i=0;
 	int horaux=0;
 	int pos=0;
 	long maxb = 0;
-	char* maxc = (char*)malloc(TWORD*sizeof(char));
-	//char* clientea = (char*)malloc(TWORD*sizeof(char));
-	//sscanf(cadena, "%s",cliente);
+	char* maxc = (char*)malloc(TWORD*sizeof(char)); // Reservamos espacio en memoria
+	
 	while(i<TAMVEC && horaux<=hora && clientes[i]!=NULL){
 		//Obtenemos la hora
 		sscanf(clientes[i],"%*s %2d",&horaux);
-		printf("Hora %02d \n",horaux);
-		//Si son clientes distintos y el tamaño del 2do es mayor se cambian los maximos
+		//Si son clientes distintos y el tamaño es mayor se cambian los maximos
 		if(strcmp(clientes[i],maxc)!=0 && array[i] > maxb && horaux==hora){
 			strcpy(maxc,clientes[i]);
 			maxb = array[i];
